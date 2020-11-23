@@ -1,156 +1,69 @@
 #!/bin/bash
 
+read -p "Enter number of trials : " trial
+read -p "Enter maximum number of coin flips per turn : " coin
+
+function flip(){
+	val=$((RANDOM%2))
+	if [[ $val -eq 0 ]]
+	then 
+		str="T"
+	else
+		str="H"
+	fi
+	echo $str
+}
 
 function maxout(){
 	arr=("$@")
 	max=0
 	for i in ${!arr[@]}
 	do
-		if [ ${arr[$i]} -gt ${arr[$max]} ] 
+		if [ ${arr[$i]} -ge ${arr[$max]} ] 
 		then
 			max=$i
 		fi
 	done
-	echo $max
+	echo ${arr[$max]}
 }
 
-read -p "Enter number of required flips : " number
+function analysis(){
+	declare -A rev
+	inp=("$@")
+	for i in ${!inp[@]}
+	do
+		rev[${inp[$i]}]=$((${rev[${inp[$i]}]}+1))		
+	done
+	maximum=$(maxout "${rev[@]}")
+	for i in ${!rev[@]}
+	do
+		echo "Win percent for $i = "
+		echo ${rev[$i]} ${#inp[@]} | awk '{print 100*$1/$2}'
+		if [[ ${rev[$i]} -eq $maximum ]]
+		then 
+			k=$i		
+		fi
+	done
+	echo "Maximum draws were for $k"
+}
 
-declare -A singlet
-headwon=0
-tailwon=0
+declare -A results
 
-for ((i=1;i<=$number;i++))
+for ((i=1;i<=$coin;i++))
 do
-	flip=$(($RANDOM%2))
-	singlet[$i]=$flip
-	if [ $flip -eq 0 ]
-	then
-		((tailwon++))
-	else
-		((headwon++))
-	fi	
-done	
-
-echo "SINGLET SIMULATIONS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo "Stored simuation results are : "${singlet[@]}
-echo "Singlet combination head win percent = "
-echo $headwon $number | awk '{print 100*$1/$2}'
-echo "Singlet combination tail win percent = "
-echo $tailwon $number | awk '{print 100*$1/$2}'
-
-singletres=($headwon $tailwon)
-singletstr=("H" "T")
-val=$(maxout "${singletres[@]}")
-echo "Winning combination is ${singletstr[$val]}"
-
-declare -A doublet
-
-headheadwon=0
-headtailwon=0
-tailheadwon=0
-tailtailwon=0
-
-# HH = 11, HT = 10, TH = 01, TT = 00
-
-for ((i=1;i<=$number;i++))
-do
-	flip=$((($RANDOM%2)*10+($RANDOM%2)))
-	if [ $flip -eq 11 ]
-	then
-		doublet[$i]="HH"
-		((headheadwon++))
-	elif [ $flip -eq 10 ]
-	then
-		doublet[$i]="HT"
-		((headtailwon++))
-	elif [ $flip -eq 1 ]
-	then
-		doublet[$i]="TH"
-		((tailheadwon++))
-	else
-		doublet[$i]="TT"
-		((tailtailwon++))
-	fi	
-done	
-
-echo "DOUBLET SIMULATIONS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo "Stored simuation results are : "${doublet[@]}
-echo "Doublet combination head-head win percent = "
-echo $headheadwon $number | awk '{print 100*$1/$2}'
-echo "Doublet combination head-tail win percent = "
-echo $headtailwon $number | awk '{print 100*$1/$2}'
-echo "Doublet combination tail-head win percent = "
-echo $tailheadwon $number | awk '{print 100*$1/$2}'
-echo "Doublet combination tail-tail win percent = "
-echo $tailtailwon $number | awk '{print 100*$1/$2}'
-
-doubletres=($headheadwon $headtailwon $tailheadwon $tailtailwon)
-doubletstr=("HH" "HT" "TH" "TT")
-val=$(maxout "${doubletres[@]}")
-echo "Winning combination is ${doubletstr[$val]}"
-
-declare -A triplet
-
-headheadheadwon=0; tailheadheadwon=0; 
-headheadtailwon=0; tailheadtailwon=0;
-headtailheadwon=0; tailtailheadwon=0;
-headtailtailwon=0; tailtailtailwon=0;
-
-# H = 1, T = 0
-
-for ((i=1;i<=$number;i++))
-do
-	flip=$((($RANDOM%2)*100+($RANDOM%2)*10+($RANDOM%2)))
-	case $flip in 
-		0)
-			triplet[$i]="TTT"
-			((tailtailtailwon++));;
-		1)
-			triplet[$i]="TTH"
-			((tailtailheadwon++));;
-		10)
-			triplet[$i]="THT"
-			((tailheadtailwon++));;
-		11)
-			triplet[$i]="THH"
-			((tailheadheadwon++));;
-		100)
-			triplet[$i]="HTT"
-			((headtailtailwon++));;
-		101)
-			triplet[$i]="HTH"
-			((headtailheadwon++));;
-		110)
-			triplet[$i]="HHT"
-			((headheadtailwon++));;
-		*)
-			triplet[$i]="HHH"
-			((headheadheadwon++));;
-	esac
-done	
-
-echo "TRIPLET SIMULATIONS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-
-echo "Stored simuation results are : "${triplet[@]}
-echo "Triplet combination HHH win percent = "
-echo $headheadheadwon $number | awk '{print 100*$1/$2}'
-echo "Triplet combination HHT win percent = "
-echo $headheadtailwon $number | awk '{print 100*$1/$2}'
-echo "Triplet combination HTH win percent = "
-echo $headtailheadwon $number | awk '{print 100*$1/$2}'
-echo "Triplet combination HTT win percent = "
-echo $headtailtailwon $number | awk '{print 100*$1/$2}'
-echo "Triplet combination THH win percent = "
-echo $tailheadheadwon $number | awk '{print 100*$1/$2}'
-echo "Triplet combination THT win percent = "
-echo $tailheadtailwon $number | awk '{print 100*$1/$2}'
-echo "Triplet combination TTH win percent = "
-echo $tailtailheadwon $number | awk '{print 100*$1/$2}'
-echo "Triplet combination TTT win percent = "
-echo $tailtailtailwon $number | awk '{print 100*$1/$2}'
-
-tripletres=($headheadheadwon $headheadtailwon $headtailheadwon $headtailtailwon $tailheadheadwon $tailheadtailwon $tailtailheadwon $tailtailtailwon)
-tripletstr=("HHH" "HHT" "HTH" "HTT" "THH" "THT" "TTH" "TTT")
-val=$(maxout "${tripletres[@]}")
-echo "Winning combination is ${tripletstr[$val]}"
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo "Simulation results for $i coin flip"
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	for ((j=1;j<=$trial;j++))
+	do
+		trailres=""
+		for ((k=1;k<=$i;k++))
+		do
+			flipres=$(flip)
+			trailres="$trailres$flipres"
+		done
+		results[$j]=$trailres
+	done
+	echo "Results of simulation with $i flips per turn : "${results[@]}
+	(analysis "${results[@]}")
+done
