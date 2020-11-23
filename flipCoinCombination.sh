@@ -1,5 +1,19 @@
 #!/bin/bash
 
+
+function maxout(){
+	arr=("$@")
+	max=0
+	for i in ${!arr[@]}
+	do
+		if [ ${arr[$i]} -gt ${arr[$max]} ] 
+		then
+			max=$i
+		fi
+	done
+	echo $max
+}
+
 read -p "Enter number of required flips : " number
 
 declare -A singlet
@@ -24,6 +38,11 @@ echo "Singlet combination head win percent = "
 echo $headwon $number | awk '{print 100*$1/$2}'
 echo "Singlet combination tail win percent = "
 echo $tailwon $number | awk '{print 100*$1/$2}'
+
+singletres=($headwon $tailwon)
+singletstr=("H" "T")
+val=$(maxout "${singletres[@]}")
+echo "Winning combination is ${singletstr[$val]}"
 
 declare -A doublet
 
@@ -65,6 +84,11 @@ echo "Doublet combination tail-head win percent = "
 echo $tailheadwon $number | awk '{print 100*$1/$2}'
 echo "Doublet combination tail-tail win percent = "
 echo $tailtailwon $number | awk '{print 100*$1/$2}'
+
+doubletres=($headheadwon $headtailwon $tailheadwon $tailtailwon)
+doubletstr=("HH" "HT" "TH" "TT")
+val=$(maxout "${doubletres[@]}")
+echo "Winning combination is ${doubletstr[$val]}"
 
 declare -A triplet
 
@@ -125,3 +149,8 @@ echo "Triplet combination TTH win percent = "
 echo $tailtailheadwon $number | awk '{print 100*$1/$2}'
 echo "Triplet combination TTT win percent = "
 echo $tailtailtailwon $number | awk '{print 100*$1/$2}'
+
+tripletres=($headheadheadwon $headheadtailwon $headtailheadwon $headtailtailwon $tailheadheadwon $tailheadtailwon $tailtailheadwon $tailtailtailwon)
+tripletstr=("HHH" "HHT" "HTH" "HTT" "THH" "THT" "TTH" "TTT")
+val=$(maxout "${tripletres[@]}")
+echo "Winning combination is ${tripletstr[$val]}"
